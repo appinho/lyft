@@ -135,7 +135,7 @@ def optimize2(nn_last_layer, correct_label, learning_rate, num_classes):
     labels = tf.reshape(correct_label, (-1, num_classes))
 
     # your class weights
-    class_weights = tf.constant([[1.0, 1.0, 1000.0]])
+    class_weights = tf.constant([[1.0, 1.0, 1.0]])
 
     # deduce weights for batch samples based on their true label
     weights = tf.reduce_sum(logits * class_weights, axis=1)
@@ -176,7 +176,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     sess.run(tf.global_variables_initializer())
 
     # Define hyperparameters for training
-    p_keep = 0.05
+    p_keep = 0.50
     l_rate = 0.001
 
     print("Training started")
@@ -201,7 +201,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
 
 def run():
     num_classes = 3
-    image_shape = (128, 192)
+    image_shape = (256, 384)
     data_dir = './data'
     runs_dir = './runs'
     #tests.test_for_kitti_dataset(data_dir)
@@ -214,8 +214,8 @@ def run():
     #  https://www.cityscapes-dataset.com/
 
     # Hyperparameters
-    num_epochs = 10
-    batch_size = 5
+    num_epochs = 20
+    batch_size = 1
 
     with tf.Session() as sess:
 
