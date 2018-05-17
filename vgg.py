@@ -177,7 +177,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
 
     # Define hyperparameters for training
     p_keep = 0.50
-    l_rate = 0.001
+    l_rate = 0.0001
 
     print("Training started")
     # Loop over epochs
@@ -241,7 +241,7 @@ def run():
         saver = tf.train.Saver()
 
         # Create function to get batches
-        get_batches_fn = helper.gen_batch_function(os.path.join(data_dir, 'Train'), image_shape)
+        get_batches_fn = helper.gen_batch_function(os.path.join(data_dir, 'SingleTrain'), image_shape)
         
         # Train NN using the train_nn function
         train_nn(sess, num_epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss,
