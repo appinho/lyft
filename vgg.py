@@ -135,7 +135,7 @@ def optimize2(nn_last_layer, correct_label, learning_rate, num_classes):
     labels = tf.reshape(correct_label, (-1, num_classes))
 
     # your class weights
-    class_weights = tf.constant([[1.0, 1.0, 3.0]])
+    class_weights = tf.constant([[1.0, 1.0, 5.0]])
 
     # deduce weights for batch samples based on their true label
     weights = tf.reduce_sum(logits * class_weights, axis=1)
@@ -185,6 +185,8 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
 
         print("Epoch: ", epoch + 1)
 
+        if(epoch > 100):
+            l_rate = 0.0001
         i = 0
         # Loop over batch size
         for image, label in get_batches_fn(batch_size):
@@ -214,8 +216,8 @@ def run():
     #  https://www.cityscapes-dataset.com/
 
     # Hyperparameters
-    num_epochs = 100
-    batch_size = 1
+    num_epochs = 150
+    batch_size = 5
 
     with tf.Session() as sess:
 

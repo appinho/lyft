@@ -113,6 +113,7 @@ def gen_test_output(sess, logits, keep_prob, image_pl, data_folder, image_shape)
     :return: Output for for each test image
     """
     for image_file in glob(os.path.join(data_folder, 'CameraRGB', '*.png')):
+        org_image_shape = (600, 800)
         image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
 
         im_softmax = sess.run(
@@ -128,8 +129,10 @@ def gen_test_output(sess, logits, keep_prob, image_pl, data_folder, image_shape)
         street_im = scipy.misc.toimage(image)
         street_im.paste(road_mask, box=None, mask=road_mask)
         street_im.paste(cars_mask, box=None, mask=cars_mask)
+        
+        res_image = scipy.misc.imresize(street_im, org_image_shape)
 
-        yield os.path.basename(image_file), np.array(street_im)
+        yield os.path.basename(image_file), np.array(res_image)
 
 def gen_test_video_output(file, sess, logits, keep_prob, image_pl, runs_dir, image_shape):
     """
