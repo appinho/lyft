@@ -95,7 +95,7 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
 def run():
     runs_dir = './runs'
     data_dir = './data'
-    image_shape = (128, 192)
+    image_shape = (256, 384)
     num_classes = 3
 
     # Later, launch the model, use the saver to restore variables from disk, and
