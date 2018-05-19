@@ -135,21 +135,17 @@ def optimize2(nn_last_layer, correct_label, learning_rate, num_classes):
     labels = tf.reshape(correct_label, (-1, num_classes))
 
     # your class weights
-    class_weights = tf.constant([[1.0, 1.0, 5.0]])
+    classes_weights = tf.constant([[1.0, 1.0, 3.0]])
 
-    # deduce weights for batch samples based on their true label
-    weights = tf.reduce_sum(logits * class_weights, axis=1)
-
-    # compute your (unweighted) softmax cross entropy loss
+    # 1
     unweighted_losses = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=logits)
     unweighted_losses = tf.reshape(unweighted_losses, (-1, 3))
-    # apply the weights, relying on broadcasting of the multiplication
-    weighted_losses = unweighted_losses * class_weights
-
-    # reduce the result to get your final loss
+    weighted_losses = unweighted_losses * classes_weights
     cross_entropy_loss = tf.reduce_mean(weighted_losses)
 
-    # Define optimizer
+    # 2
+    #cross_entropy_loss = tf.nn.weighted_cross_entropy_with_logits(logits=logits, targets=labels, pos_weight=classes_weights)    # Define optimizer
+    
     train_op = tf.train.AdamOptimizer(learning_rate = learning_rate).minimize(cross_entropy_loss)
 
     # Return
@@ -185,8 +181,6 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
 
         print("Epoch: ", epoch + 1)
 
-        if(epoch > 100):
-            l_rate = 0.0001
         i = 0
         # Loop over batch size
         for image, label in get_batches_fn(batch_size):
@@ -216,7 +210,7 @@ def run():
     #  https://www.cityscapes-dataset.com/
 
     # Hyperparameters
-    num_epochs = 150
+    num_epochs = 10
     batch_size = 5
 
     with tf.Session() as sess:
