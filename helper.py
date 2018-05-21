@@ -114,10 +114,16 @@ def gen_test_output(sess, logits, keep_prob, image_pl, data_folder, image_shape)
     """
     batch_size = 5
     num_pixels = image_shape[0] * image_shape[1]
-    for image_file in glob(os.path.join(data_folder, 'CameraRGB', '*.png')):
-        org_image_shape = (600, 800)
+    org_image_shape = (600, 800)
+    image_files = glob(os.path.join(data_folder, 'CameraRGB', '*.png'))
+    print(len(image_files))
+    n_loop = int(len(image_files) / batch_size)
+    print(n_loop)
+    for i in range(n_loop):
+        start_idx = i * batch_size
+        stop_idx = (i+1) * batch_size
         images = []
-        for i in range(batch_size):
+        for image_file in image_files[start_idx:stop_idx]:
             image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
             images.append(image)
 
@@ -126,6 +132,7 @@ def gen_test_output(sess, logits, keep_prob, image_pl, data_folder, image_shape)
             {keep_prob: 1.0, image_pl: images})[0]
 
         for i in range(batch_size):
+            print("Infer",i)
             start_idx = i * num_pixels
             stop_idx = (i+1) * num_pixels
             max_class = np.argmax(im_softmax[start_idx:stop_idx], axis=1).reshape(image_shape[0], image_shape[1])
