@@ -120,12 +120,16 @@ def gen_test_output(sess, logits, keep_prob, image_pl, data_folder, image_shape)
     n_loop = int(len(image_files) / batch_size)
     print(n_loop)
     for i in range(n_loop):
+        print("Batch", i)
         start_idx = i * batch_size
         stop_idx = (i+1) * batch_size
         images = []
+        image_names = []
         for image_file in image_files[start_idx:stop_idx]:
+            print(image_file)
             image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
             images.append(image)
+            image_names.append(image_file)
 
         im_softmax = sess.run(
             [tf.nn.softmax(logits)],
@@ -142,13 +146,13 @@ def gen_test_output(sess, logits, keep_prob, image_pl, data_folder, image_shape)
             cars_mask = np.dot(cars, np.array([[255, 0, 0, 127]]))
             road_mask = scipy.misc.toimage(road_mask, mode="RGBA")
             cars_mask = scipy.misc.toimage(cars_mask, mode="RGBA")
-            street_im = scipy.misc.toimage(image)
+            street_im = scipy.misc.toimage(images[i])
             street_im.paste(road_mask, box=None, mask=road_mask)
             street_im.paste(cars_mask, box=None, mask=cars_mask)
             
             res_image = scipy.misc.imresize(street_im, org_image_shape)
 
-            yield os.path.basename(image_file), np.array(res_image)
+            yield os.path.basename(image_names[i]), np.array(res_image)
 
 def gen_test_video_output(file, sess, logits, keep_prob, image_pl, runs_dir, image_shape):
     """

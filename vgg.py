@@ -198,9 +198,9 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
 
         print("Epoch: ", epoch + 1)
 
-        if(epoch == 3):
+        if(epoch == 1):
             l_rate = 0.00001
-        elif(epoch == 5):
+        elif(epoch == 2):
             l_rate = 0.000001
 
         print(l_rate)
@@ -238,7 +238,7 @@ def run():
     #  https://www.cityscapes-dataset.com/
 
     # Hyperparameters
-    num_epochs = 10
+    num_epochs = 3
     batch_size = 5
 
     with tf.Session() as sess:
@@ -259,7 +259,7 @@ def run():
         input_image, keep_prob, layer3, layer4, layer7 = load_vgg(
             sess, vgg_path)
         final_layer = layers(layer3, layer4, layer7, num_classes)
-        logits, train_op, cross_entropy_loss = optimize2(final_layer, correct_label,
+        logits, train_op, cross_entropy_loss = optimize(final_layer, correct_label,
                                                          learning_rate, num_classes)
 
         # Create function to get batches

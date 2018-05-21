@@ -123,7 +123,7 @@ image_shape = (256, 384)
 org_image_shape = (600, 800)
 data_dir = './data'
 num_classes = 3
-batch_size = 5
+batch_size = 10
 with tf.Session() as sess:
 
     # Path to vgg model
@@ -138,16 +138,18 @@ with tf.Session() as sess:
 
     # Restore variables from disk.
     saver = tf.train.Saver()
-    saver.restore(sess, "./tmp/model0.ckpt")
+    saver.restore(sess, "./tmp/model2.ckpt")
 
     num_pixels = image_shape[0] * image_shape[1]
+    n_loop = int(1000 / batch_size)
 
-    for rgb_frame in video:
+    for i in range(n_loop):
 
+        start_idx = i * batch_size
+        stop_idx = (i + 1) * batch_size
         images = []
-        for i in range(batch_size):
 
-            # Resize
+        for rgb_frame in video[start_idx:stop_idx]:
             image = scipy.misc.imresize(rgb_frame, image_shape)
             images.append(image)
 
@@ -157,8 +159,9 @@ with tf.Session() as sess:
         for i in range(batch_size):
 
             start_idx = i * num_pixels
-            stop_idx = (i+1) * num_pixels
-            max_class = np.argmax(im_softmax[start_idx:stop_idx], axis=1).reshape(image_shape[0], image_shape[1])
+            stop_idx = (i + 1) * num_pixels
+            max_class = np.argmax(im_softmax[start_idx:stop_idx], axis=1).reshape(
+                image_shape[0], image_shape[1])
             # print(max_class)
             unique, counts = np.unique(max_class, return_counts=True)
             road = (max_class == 1).reshape(image_shape[0], image_shape[1], 1)
@@ -168,7 +171,7 @@ with tf.Session() as sess:
             cars = cars[:, :, 0]
             res_road = scipy.misc.imresize(road, org_image_shape)
             res_cars = scipy.misc.imresize(cars, org_image_shape)
-            #scipy.misc.imsave("./runs/image" + str(frame) + ".png", rgb_frame)
+            # scipy.misc.imsave("./runs/image" + str(frame) + ".png", rgb_frame)
             answer_key[frame] = [encode(res_cars), encode(res_road)]
 
             # Increment frame
