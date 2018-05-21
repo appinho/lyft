@@ -1,3 +1,4 @@
+import time
 import os.path
 import tensorflow as tf
 import helper
@@ -142,7 +143,7 @@ def optimize2(nn_last_layer, correct_label, learning_rate, num_classes):
 
 
 def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image,
-             correct_label, keep_prob, learning_rate):
+             correct_label, keep_prob, learning_rate, saver, data_dir):
     """
     Train neural network and print out the loss during training.
     :param sess: TF Session
@@ -164,10 +165,10 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                 feed_dict = {input_image: image, correct_label: targets, keep_prob: KEEP_PROB ,
                              learning_rate: LEARNING_RATE })
 
-        print("Epoch: {}".format(epoch + 1), "/ {}".format(epochs), " Loss: {:.3f}".format(loss), " Time: ",
-              str(timedelta(seconds=(time.time() - s_time))))
-        if (epoch + 1) % 2 == 0:
-            save_path = saver.save(sess, os.path.join(data_dir, 'cont_epoch_' + str(epoch) + '.ckpt'))
+            print("Epoch: {}".format(epoch + 1), "/ {}".format(epochs), " Loss: {:.3f}".format(loss), " Time: ",
+                  str(timedelta(seconds=(time.time() - s_time))))
+            if (epoch + 1) % 30 == 0:
+                save_path = saver.save(sess, os.path.join(data_dir, 'cont_epoch_' + str(epoch) + '.ckpt'))
 
     print("Training finished")
 
@@ -175,7 +176,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
 def run():
 
     # Download pretrained vgg model
-    helper.maybe_download_pretrained_vgg(DARA_DIR)
+    helper.maybe_download_pretrained_vgg(DATA_DIR)
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.4)
 
     with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
@@ -183,7 +184,7 @@ def run():
         # Path to vgg model
         vgg_path = os.path.join(DATA_DIR, 'vgg')
         # Create function to get batches
-        get_batches_fn = helper.gen_batch_function(os.path.join(DATA_DIR, 'data_road/training'), IMAGE_SHAPE)
+        get_batches_fn = helper.gen_batch_function(os.path.join(DATA_DIR, 'Train'), IMAGE_SHAPE)
         # OPTIONAL: Augment Images for better results
         #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
         # Add some augmentations, see helper.py

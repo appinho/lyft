@@ -1,4 +1,5 @@
 import re
+import cv2
 import random
 import numpy as np
 import os.path
@@ -57,7 +58,6 @@ def maybe_download_pretrained_vgg(data_dir):
         # Remove zip file to save space
         os.remove(os.path.join(vgg_path, vgg_filename))
 
-
 def gen_batch_function(data_folder, image_shape):
     """
     Generate function to create batches of training data
@@ -77,14 +77,20 @@ def gen_batch_function(data_folder, image_shape):
         road_color = np.array([255, 0, 255])
         cars_color = np.array([0, 0, 0])
 
-        #random.shuffle(image_paths)
+        random.shuffle(image_paths)
         for batch_i in range(0, len(image_paths), batch_size):
             images = []
             gt_images = []
             for i,image_file in enumerate(image_paths[batch_i:batch_i+batch_size]):
                 gt_image_file = label_paths[i]
-                image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
-                gt_image = scipy.misc.imresize(scipy.misc.imread(gt_image_file), image_shape)
+                image = cv2.imread(image_file)
+                gt_image = cv2.imread(gt_image_file)
+                #image, gt_image = random_crop(image, gt_image) #Random crop augmentation
+                image = cv2.resize(image, image_shape)
+                contr = random.uniform(0.85, 1.15) # Contrast augmentation
+                bright = random.randint(-45, 30) # Brightness augmentation
+                image = bc_img(image, contr, bright)
+                gt_image = cv2.resize(gt_image, image_shape)
 
                 gt_back = np.all(gt_image == back_color, axis=2)
                 gt_road = np.all(gt_image == road_color, axis =2)
@@ -99,7 +105,6 @@ def gen_batch_function(data_folder, image_shape):
 
             yield np.array(images), np.array(gt_images)
     return get_batches_fn
-
 
 def gen_test_output(sess, logits, keep_prob, image_pl, data_folder, image_shape):
     """
