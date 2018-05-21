@@ -91,14 +91,16 @@ def gen_batch_function(data_folder, image_shape):
             gt_images = []
             for i,image_file in enumerate(image_paths[batch_i:batch_i+batch_size]):
                 gt_image_file = label_paths[i]
-                image = cv2.imread(image_file)
-                gt_image = cv2.imread(gt_image_file)
+                image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
+                gt_image = scipy.misc.imresize(scipy.misc.imread(gt_image_file), image_shape)
+                #image = cv2.imread(image_file)
+                #gt_image = cv2.imread(gt_image_file)
                 #image, gt_image = random_crop(image, gt_image) #Random crop augmentation
-                image = cv2.resize(image, image_shape)
+                #image = cv2.resize(image, image_shape)
                 contr = random.uniform(0.85, 1.15) # Contrast augmentation
                 bright = random.randint(-45, 30) # Brightness augmentation
                 image = bc_img(image, contr, bright)
-                gt_image = cv2.resize(gt_image, image_shape)
+                #gt_image = cv2.resize(gt_image, image_shape)
 
                 gt_back = np.all(gt_image == back_color, axis=2)
                 gt_road = np.all(gt_image == road_color, axis =2)
