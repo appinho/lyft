@@ -123,6 +123,7 @@ image_shape = (256, 384)
 org_image_shape = (600, 800)
 data_dir = './data'
 num_classes = 3
+batch_size = 5
 with tf.Session() as sess:
 
     # Path to vgg model
@@ -137,31 +138,41 @@ with tf.Session() as sess:
 
     # Restore variables from disk.
     saver = tf.train.Saver()
-    saver.restore(sess, "./tmp/model.ckpt")
+    saver.restore(sess, "./tmp/model0.ckpt")
+
+    num_pixels = image_shape[0] * image_shape[1]
 
     for rgb_frame in video:
 
-        # Resize
-        image = scipy.misc.imresize(rgb_frame, image_shape)
+        images = []
+        for i in range(batch_size):
+
+            # Resize
+            image = scipy.misc.imresize(rgb_frame, image_shape)
+            images.append(image)
 
         im_softmax = sess.run([tf.nn.softmax(logits)], {
-                              keep_prob: 1.0, input_image:    [image]})[0]
-        max_class = np.argmax(im_softmax, axis=1).reshape(
-            image_shape[0], image_shape[1])
-        #print(max_class)
-        unique, counts = np.unique(max_class, return_counts=True)
-        road = (max_class == 1).reshape(image_shape[0], image_shape[1], 1)
-        cars = (max_class == 2).reshape(image_shape[0], image_shape[1], 1)
+                              keep_prob: 1.0, input_image: images})[0]
 
-        road = road[:, :, 0]
-        cars = cars[:, :, 0]
-        res_road = scipy.misc.imresize(road, org_image_shape)
-        res_cars = scipy.misc.imresize(cars, org_image_shape)
-        #scipy.misc.imsave("./runs/image" + str(frame) + ".png", rgb_frame)
-        answer_key[frame] = [encode(res_cars), encode(res_road)]
+        for i in range(batch_size):
 
-        # Increment frame
-        frame += 1
+            start_idx = i * num_pixels
+            stop_idx = (i+1) * num_pixels
+            max_class = np.argmax(im_softmax[start_idx:stop_idx], axis=1).reshape(image_shape[0], image_shape[1])
+            # print(max_class)
+            unique, counts = np.unique(max_class, return_counts=True)
+            road = (max_class == 1).reshape(image_shape[0], image_shape[1], 1)
+            cars = (max_class == 2).reshape(image_shape[0], image_shape[1], 1)
+
+            road = road[:, :, 0]
+            cars = cars[:, :, 0]
+            res_road = scipy.misc.imresize(road, org_image_shape)
+            res_cars = scipy.misc.imresize(cars, org_image_shape)
+            #scipy.misc.imsave("./runs/image" + str(frame) + ".png", rgb_frame)
+            answer_key[frame] = [encode(res_cars), encode(res_road)]
+
+            # Increment frame
+            frame += 1
 
 # Print output in proper json format
-#print(json.dumps(answer_key))
+print(json.dumps(answer_key))

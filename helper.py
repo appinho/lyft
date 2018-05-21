@@ -112,27 +112,36 @@ def gen_test_output(sess, logits, keep_prob, image_pl, data_folder, image_shape)
     :param image_shape: Tuple - Shape of image
     :return: Output for for each test image
     """
+    batch_size = 5
+    num_pixels = image_shape[0] * image_shape[1]
     for image_file in glob(os.path.join(data_folder, 'CameraRGB', '*.png')):
         org_image_shape = (600, 800)
-        image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
+        images = []
+        for i in range(batch_size):
+            image = scipy.misc.imresize(scipy.misc.imread(image_file), image_shape)
+            images.append(image)
 
         im_softmax = sess.run(
             [tf.nn.softmax(logits)],
-            {keep_prob: 1.0, image_pl: [image]})[0]
-        max_class = np.argmax(im_softmax, axis=1).reshape(image_shape[0], image_shape[1])
-        road = (max_class == 1).reshape(image_shape[0], image_shape[1], 1)
-        cars = (max_class == 2).reshape(image_shape[0], image_shape[1], 1)
-        road_mask = np.dot(road, np.array([[0, 255, 0, 127]]))
-        cars_mask = np.dot(cars, np.array([[255, 0, 0, 127]]))
-        road_mask = scipy.misc.toimage(road_mask, mode="RGBA")
-        cars_mask = scipy.misc.toimage(cars_mask, mode="RGBA")
-        street_im = scipy.misc.toimage(image)
-        street_im.paste(road_mask, box=None, mask=road_mask)
-        street_im.paste(cars_mask, box=None, mask=cars_mask)
-        
-        res_image = scipy.misc.imresize(street_im, org_image_shape)
+            {keep_prob: 1.0, image_pl: images})[0]
 
-        yield os.path.basename(image_file), np.array(res_image)
+        for i in range(batch_size):
+            start_idx = i * num_pixels
+            stop_idx = (i+1) * num_pixels
+            max_class = np.argmax(im_softmax[start_idx:stop_idx], axis=1).reshape(image_shape[0], image_shape[1])
+            road = (max_class == 1).reshape(image_shape[0], image_shape[1], 1)
+            cars = (max_class == 2).reshape(image_shape[0], image_shape[1], 1)
+            road_mask = np.dot(road, np.array([[0, 255, 0, 127]]))
+            cars_mask = np.dot(cars, np.array([[255, 0, 0, 127]]))
+            road_mask = scipy.misc.toimage(road_mask, mode="RGBA")
+            cars_mask = scipy.misc.toimage(cars_mask, mode="RGBA")
+            street_im = scipy.misc.toimage(image)
+            street_im.paste(road_mask, box=None, mask=road_mask)
+            street_im.paste(cars_mask, box=None, mask=cars_mask)
+            
+            res_image = scipy.misc.imresize(street_im, org_image_shape)
+
+            yield os.path.basename(image_file), np.array(res_image)
 
 def gen_test_video_output(file, sess, logits, keep_prob, image_pl, runs_dir, image_shape):
     """
