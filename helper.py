@@ -57,6 +57,14 @@ def maybe_download_pretrained_vgg(data_dir):
 
         # Remove zip file to save space
         os.remove(os.path.join(vgg_path, vgg_filename))
+        
+def bc_img(img, s = 1.0, m = 0.0):
+    img = img.astype(np.int)
+    img = img * s + m
+    img[img > 255] = 255
+    img[img < 0] = 0
+    img = img.astype(np.uint8)
+return img 
 
 def gen_batch_function(data_folder, image_shape):
     """
